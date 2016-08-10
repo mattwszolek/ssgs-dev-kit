@@ -4,11 +4,11 @@ A cheap kit that allows you to build and test GameSense applications for the Ste
 
 ##Setup
 
-*Download and make sure you can build this project: <https://github.com/abcminiuser/lufa>
-*Clone this repo
-*`cd ssgs-dev-kit`
-*Put your board into Boot mode
-*`make avrdude`
+* Download and make sure you can build this project: <https://github.com/abcminiuser/lufa>
+* Clone this repo
+* `cd ssgs-dev-kit`
+* Put your board into Boot mode
+* `make avrdude`
 
 ##Hardware
 
