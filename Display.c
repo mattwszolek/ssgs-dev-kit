@@ -32,6 +32,21 @@ USB_ClassInfo_HID_Device_t Generic_HID_Interface =
 			},
 	};
 
+void rgb_led_setup(void) {
+	//set up pins for output to the LED
+	DDRB |= (1<<DDB5) | (1<<DDB6);
+	DDRC |= (1<<DDC6);
+	//set up PWM on those pins
+	TCCR1A |= (1<<COM1A1) | (1<<COM1B1) | (1<<COM1A0) | (1<<COM1B0) | (1<<WGM10);
+	TCCR1B |= (1<<WGM12) | (1<<CS10);
+	TCCR3A |= (1<<COM3A1) | (1<<COM3A0) | (1<<WGM30);
+	TCCR3B |= (1<<WGM32) | (1<<CS30);
+	//set default values for the LED (0-FF)
+	OCR1A = 0x40;
+	OCR1B = 0x80;
+	OCR3A = 0xFF;
+}
+
 
 /** Main program entry point. This routine contains the overall program flow, including initial
  *  setup of all components and the main program loop.
@@ -42,6 +57,7 @@ int main(void) {
 	DDRD |= (1<<DDD4);
 	PORTD |= (1<<PORTD4);
 
+	rgb_led_setup();
 	init_oled();
 
 	SetupHardware();
@@ -179,6 +195,12 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 			switch (data[1]) {
 			case 0x1: //get status of the OLED progress
 				gRet[0] = ssd_get_status();
+				break;
+			case 0x10:
+				OCR1B = data[2]; //red
+				OCR3A = data[3]; //green
+				OCR1A = data[4]; //blue
+				gRet[0] = 1;
 				break;
 			default:
 				gRet[0] = 0;
