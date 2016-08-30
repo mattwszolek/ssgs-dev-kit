@@ -210,6 +210,10 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 				OCR1A = data[4]; //blue
 				gRet[0] = 1;
 				break;
+			case 0x05:
+				gRet[0] = FW_VERSION>>8;
+				gRet[1] = (uint8_t)FW_VERSION;
+				break;
 			default:
 				gRet[0] = 0;
 			}

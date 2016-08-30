@@ -4,7 +4,7 @@
 //device info
 #define USBD_VID                                0x1038
 #define USBD_PID                                0x07ED
-#define FW_VERSION                              0x0002
+#define FW_VERSION                              0x0003
 
 #define USB_MAX_EP0_SIZE                        8
 #define USBD_CFG_MAX_NUM                        1
