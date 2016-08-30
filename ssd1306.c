@@ -3,8 +3,113 @@
 
 static uint16_t ssdIndex = 0;
 static uint8_t ssdBuffer[OLED_SZ] = {0};
+static uint8_t ssdTranslateBuffer[OLED_SZ] = {0};
 static uint8_t ssdSend = SENT;
 
+
+// Translates one page of the oled display.
+// Input should be the first byte of the page.
+static void inverse_translate (uint8_t * input, uint8_t * output) {
+	for (int section = 0; section < 16; ++section) {
+		int omup = section * 8;
+		output[0 + omup] = 
+					(input[0 + section] & 0x80) | 
+					((input[16 + section] & 0x80) >> 1) |
+					((input[32 + section] & 0x80) >> 2) |
+					((input[48 + section] & 0x80) >> 3) |
+					((input[64 + section] & 0x80) >> 4) |
+					((input[80 + section] & 0x80) >> 5) |
+					((input[96 + section] & 0x80) >> 6) |
+					((input[112 + section] & 0x80) >> 7);
+
+		output[1 + omup] = 
+					((input[0 + section] & 0x40) << 1) | 
+					((input[16 + section] & 0x40)) |
+					((input[32 + section] & 0x40) >> 1) |
+					((input[48 + section] & 0x40) >> 2) |
+					((input[64 + section] & 0x40) >> 3) |
+					((input[80 + section] & 0x40) >> 4) |
+					((input[96 + section] & 0x40) >> 5) |
+					((input[112 + section] & 0x40) >> 6);
+
+		output[2 + omup] = 
+					((input[0 + section] & 0x20) << 2) | 
+					((input[16 + section] & 0x20) << 1) |
+					((input[32 + section] & 0x20)) |
+					((input[48 + section] & 0x20) >> 1) |
+					((input[64 + section] & 0x20) >> 2) |
+					((input[80 + section] & 0x20) >> 3) |
+					((input[96 + section] & 0x20) >> 4) |
+					((input[112 + section] & 0x20) >> 5);
+
+		output[3 + omup] = 
+					((input[0 + section] & 0x10) << 3) | 
+					((input[16 + section] & 0x10) << 2) |
+					((input[32 + section] & 0x10) << 1) |
+					((input[48 + section] & 0x10)) |
+					((input[64 + section] & 0x10) >> 1) |
+					((input[80 + section] & 0x10) >> 2) |
+					((input[96 + section] & 0x10) >> 3) |
+					((input[112 + section] & 0x10) >> 4);
+
+		output[4 + omup] = 
+					((input[0 + section] & 0x08) << 4) | 
+					((input[16 + section] & 0x08) << 3) |
+					((input[32 + section] & 0x08) << 2) |
+					((input[48 + section] & 0x08) << 1) |
+					((input[64 + section] & 0x08)) |
+					((input[80 + section] & 0x08) >> 1) |
+					((input[96 + section] & 0x08) >> 2) |
+					((input[112 + section] & 0x08) >> 3);
+
+		output[5 + omup] = 
+					((input[0 + section] & 0x04) << 5) | 
+					((input[16 + section] & 0x04) << 4) |
+					((input[32 + section] & 0x04) << 3) |
+					((input[48 + section] & 0x04) << 2) |
+					((input[64 + section] & 0x04) << 1) |
+					((input[80 + section] & 0x04)) |
+					((input[96 + section] & 0x04) >> 1) |
+					((input[112 + section] & 0x04) >> 2);
+
+		output[6 + omup] = 
+					((input[0 + section] & 0x02) << 6) | 
+					((input[16 + section] & 0x02) << 5) |
+					((input[32 + section] & 0x02) << 4) |
+					((input[48 + section] & 0x02) << 3) |
+					((input[64 + section] & 0x02) << 2) |
+					((input[80 + section] & 0x02) << 1) |
+					((input[96 + section] & 0x02)) |
+					((input[112 + section] & 0x02) >> 1);
+
+		output[7 + omup] = 
+					((input[0 + section] & 0x01) << 7) | 
+					((input[16 + section] & 0x01) << 6) |
+					((input[32 + section] & 0x01) << 5) |
+					((input[48 + section] & 0x01) << 4) |
+					((input[64 + section] & 0x01) << 3) |
+					((input[80 + section] & 0x01) << 2) |
+					((input[96 + section] & 0x01) << 1) |
+					((input[112 + section] & 0x01));
+	}
+}
+
+void ssd_translate(void) {
+	static uint8_t translate_step = 0;
+	translate_step &= PAGE_MASK;
+	inverse_translate(&ssdTranslateBuffer[translate_step * PAGE_SIZE], &ssdBuffer[translate_step * PAGE_SIZE]);
+	translate_step++;
+	if (translate_step == NUM_PAGES) { //there are four pages
+		ssdSend = SEND;
+	}
+}
+
+void ssd_data_translate(uint8_t * data) {
+	for (uint16_t i = 0; i < OLED_SZ; ++i) {
+		ssdTranslateBuffer[i] = data[i];
+	}
+	ssdSend = TRANSLATE;
+}
 
 void ssd_update_status(uint8_t status) {
 	ssdSend = status;

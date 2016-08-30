@@ -16,7 +16,7 @@ const uint8_t PROGMEM GenericReport[CUSTOMHID_SIZ_REPORT_DESC_SIZE] =
 	0x95, 0x20,          // Report Count (32)
 	0x91, 0x02,          // Output (Data,Var,Abs,NWrp,Lin,Pref,NNul,NVol,Bit)
 	0x09, 0xF2,          // Usage (Vendor-Defined 242)
-	0x96, 0x00, 0x02,    // Report Count (512)
+	0x96, 0x01, 0x02,    // Report Count (513)
 	0xB1, 0x02,          // Feature (Data,Var,Abs,NWrp,Lin,Pref,NNul,NVol,Bit)
 	0xC0                 // End Collection
 };

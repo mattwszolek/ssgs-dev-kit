@@ -52,7 +52,7 @@ void rgb_led_setup(void) {
  *  setup of all components and the main program loop.
  */
 int main(void) {
-
+	uint8_t ssd_status;
 	//Error LED
 	DDRD |= (1<<DDD4);
 	PORTD |= (1<<PORTD4);
@@ -65,8 +65,12 @@ int main(void) {
 	
 	for (;;)
 	{
+		ssd_status = ssd_get_status();
 		/*Check OLED status*/
-		if (ssd_get_status() == SEND) {
+		if (ssd_status == TRANSLATE) {
+			ssd_translate();
+		}
+		if (ssd_status == SEND) {
 			write_ssd_cmd(0x21);   //column addr
 			write_ssd_cmd(0);
 			write_ssd_cmd(127);    //0-127
@@ -77,7 +81,7 @@ int main(void) {
 
 			ssd_update_status(SENDING);;
 		}
-		if (ssd_get_status() == SENDING) {
+		if (ssd_status == SENDING) {
 			write_sixteen();
 		}
 		/*Check USB status*/
@@ -188,7 +192,11 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 	if (ReportType == HID_REPORT_ITEM_Feature) {
 		//copy data to buffer and display it
 		uint8_t *data = (uint8_t*)ReportData;
-		ssd_data(data);
+		if (data[0] == 0x1) {
+			ssd_data_translate(&data[1]);
+		} else if (data[0] == 0x2) {
+			ssd_data(&data[1]);
+		} //must be 1 or 2, otherwise nothing written to screen
 	} else if (HIDInterfaceInfo == &Generic_HID_Interface){
 		uint8_t *data = (uint8_t *)ReportData;
 		if (data[0] == 0x20) {
